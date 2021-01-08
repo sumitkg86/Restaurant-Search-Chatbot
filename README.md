@@ -1,47 +1,104 @@
-An Indian startup named 'Foodie' wants to build a conversational bot (chatbot) which can help users discover restaurants across several Indian cities. You have been hired as the lead data scientist for creating this product.
+### Introduction
 
-The main purpose of the bot is to help users discover restaurants quickly and efficiently and to provide a good restaurant discovery experience. 
+This bot searches for restaurants and gives them to us as a list
 
-The project brief provided to you is as follows.
-
-The bot takes the following inputs from the user:
-City: Take the input from the customer as a text field. 
-For example:
-Bot: In which city are you looking for restaurants?
-User: anywhere in Delhi
-
-Important Notes: 
-Assume that Foodie works only in Tier-1 and Tier-2 cities. You can use the current HRA classification of the cities from here (https://en.wikipedia.org/wiki/Classification_of_Indian_cities).
-Under the section 'current classification' on this page, the table categorizes cities as X, Y and Z. Consider 'X ' cities as tier-1 and 'Y' as tier-2. 
-The bot should be able to identify common synonyms of city names, such as Bangalore/Bengaluru, Mumbai/Bombay etc.
-
-Your chatbot should provide results for tier-1 and tier-2 cities only, while for tier-3 cities, it should reply back with something like "We do not operate in that area yet".
-
-Cuisine Preference: Take the cuisine preference from the customer. The bot should list out the following six cuisine categories (Chinese, Mexican, Italian, American, South Indian & North Indian) and the customer can select any one out of that. Following is an example for the same:
-
-Bot: What kind of cuisine would you prefer?
-Chinese
-Mexican
-Italian
-American
-South Indian
-North Indian
-User: I’ll prefer Italian!
-
-Average budget for two people: Segment the price range (average budget for two people) into three price categories: lesser than 300, 300 to 700 and more than 700. The bot should ask the user to select one of the three price categories. For example:
-
-Bot: What price range are you looking at?
-Lesser than Rs. 300
-Rs. 300 to 700
-More than 700
-User: in range of 300 to 700
-
-While showing the results to the user, the bot should display the top 5 restaurants in a sorted order (descending) of the average Zomato user rating (on a scale of 1-5, 5 being the highest). The format should be: {restaurant_name} in {restaurant_address} has been rated {rating}.
+Some examples are as follows:
+```
+User: Hi
+Bot: Hi there! How may I help you?
+User: Can you suggest some good restaurants in kolkata 
+Bot: What kind of cuisine would you like to have?
+1. Chinese 2. Mexican 3. Italian
+4. American 5. Thai
+6. North Indian
+User: american
+Bot: What's the average budget for two people?
+1. Lesser than Rs. 300 2. Rs. 300 to 700
+3. More than 700
+User: <300
+Bot: Showing you top rated restaurants:
+1. Restaurant 1 in Area 1. And the average price for two people here is: XXX Rs
+2. Restaurant 1 in Area 1. And the average price for two people here is: XXX Rs
+3. .
+4. .
+5. .
+Bot: Should I send you details of all the restaurants on email? User: yes. Please
+Bot: To what email id should I send it to?
+User: jddk.2jmd@kdl.co.in
+Bot: Sent. Bon Appetit!
+```
 
 
-Finally, the bot should ask the user whether he/she wants the details of the top 10 restaurants on email. If the user replies 'yes', the bot should ask for user’s email id and then send it over email. Else, just reply with a 'goodbye' message. The mail should have the following details for each restaurant:
+### Installation
 
-Restaurant Name
-Restaurant locality address
-Average budget for two people
-Zomato user rating
+Download this repo and cd into the folder
+
+Install the dependencies
+```sh
+$ pip install -r requirements.txt
+```
+Install the spacy en library
+```sh
+$ python -m spacy download en
+```
+
+### Training the RASA 
+
+In order to train the interpreter, run the following command
+
+```sh
+$ python -m rasa_nlu.train -c nlu_config.yml --data data/data.json -o models --fixed_model_name nlu --project current --verbose
+```
+
+In order to train RASA CORE, run the following command
+
+```sh
+$ python -m rasa_core.train -d domain.yml -s data/stories.md -o models/current/dialogue -c policies.yml
+```
+
+### Running the RASA on commandline
+
+In order to run rasa action server, execute
+```sh
+$ python -m rasa_core_sdk.endpoint --actions actions
+```
+
+
+In order to run rasa at commandline, execute
+```sh
+$ python -m rasa_core.run -d models/current/dialogue -u models/current/nlu --endpoints endpoints.yml
+```
+
+### Running the RASA on GUI
+First, run a small flask server to get the GUI
+```sh
+$ cd chat_interface
+$ python deploy.py
+```
+This will run flask server with a chat window that can be accessed by visiting
+http://localhost:5090
+
+Next get the rasa action server up and running
+```sh
+$ python -m rasa_core_sdk.endpoint --actions actions
+```
+
+Next run rasa as a simple server
+```sh
+$ python -m rasa_core.run --enable_api -d models/current/dialogue -u models/current/nlu -o out.log --endpoints endpoints.yml
+```
+
+Now if you go to your browser and open http://localhost:5090, a chat window will pop up and you can converse with the bot.
+
+
+### Running the RASA on Slack
+
+First get the rasa action server up and running
+```sh
+$ python -m rasa_core_sdk.endpoint --actions actions
+```
+
+Next run the app which will handle slack messages
+```sh
+$ python run_app.py
+```
